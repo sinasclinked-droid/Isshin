@@ -45,7 +45,7 @@ body{
   position:relative;
   aspect-ratio:4/3;
   background:#000;
-  overflow:hidden; /* importante pra cortar o blur certinho */
+  overflow:hidden;
 }
 
 /* fundo blur (preenche tudo) */
@@ -107,21 +107,23 @@ h1{margin:10px 0 6px;font-size:22px;}
   padding: 8px 0 2px;
 }
 
+/* ====== AQUI: BOTÕES COM "ROUBO DE LUGAR" (ABSOLUTE) ====== */
 .btnRow{
-  display:flex;
-  gap:12px;
-  justify-content:center;
-  align-items:center;
   position:relative;
+  width:min(360px, 100%);
+  height:56px;
+  margin:0 auto;
   z-index:2;
-  transition: justify-content .2s ease;
 }
 
 button.choice{
+  position:absolute;
+  top:0;
   border:none;
   border-radius:16px;
   padding:14px 18px;
   min-width:140px;
+  height:56px;
   font-size:16px;
   font-weight:950;
   color:#fff;
@@ -129,10 +131,19 @@ button.choice{
   transform-origin:center;
   transition:transform .22s cubic-bezier(.2,.9,.2,1),
              opacity .18s ease,filter .18s ease;
+  will-change:transform;
 }
 
-#yesBtn{background:var(--yes);}
-#noBtn {background:var(--no);}
+#yesBtn{
+  background:var(--yes);
+  left:0;
+  z-index:3; /* sim sempre por cima, e vai "roubando" o espaço do não */
+}
+#noBtn{
+  background:var(--no);
+  right:0;
+  z-index:2;
+}
 
 /* ===== ORBITA COM GIF (MAIOR E MAIS LENTO) ===== */
 .orbit{
@@ -170,9 +181,9 @@ button.choice{
 /* efeitos */
 .pulse{animation:pulse .3s ease-out;}
 @keyframes pulse{
-  0%{transform:scale(var(--s))}
-  60%{transform:scale(calc(var(--s) + 0.06))}
-  100%{transform:scale(var(--s))}
+  0%{transform:translateX(var(--tx, 0px)) scale(var(--s))}
+  60%{transform:translateX(var(--tx, 0px)) scale(calc(var(--s) + 0.06))}
+  100%{transform:translateX(var(--tx, 0px)) scale(var(--s))}
 }
 
 .shake{animation:shake .28s ease-in-out;}
@@ -189,8 +200,8 @@ button.choice{
   animation: blinkHappy .8s ease-in-out infinite;
 }
 @keyframes blinkHappy{
-  0%,100%{ filter: brightness(1); transform: scale(var(--s)); }
-  50%{ filter: brightness(1.22); transform: scale(calc(var(--s) + 0.03)); }
+  0%,100%{ filter: brightness(1); transform: translateX(var(--tx, 0px)) scale(var(--s)); }
+  50%{ filter: brightness(1.22); transform: translateX(var(--tx, 0px)) scale(calc(var(--s) + 0.03)); }
 }
 
 /* corações fofos */
@@ -340,7 +351,6 @@ let lockClicks = false;
 
 /* helper: troca vídeo nos dois (principal + blur) */
 function setVideo(src){
-  // fundo blur sempre mutado e em loop
   vidBg.pause();
   vidBg.src = src;
   vidBg.loop = true;
@@ -348,7 +358,6 @@ function setVideo(src){
   vidBg.muted = true;
   vidBg.play().catch(()=>{});
 
-  // principal sempre em loop
   vid.pause();
   vid.src = src;
   vid.loop = true;
@@ -359,7 +368,7 @@ function setVideo(src){
 /* som iPhone */
 soundBtn.addEventListener("click", async () => {
   try{
-    vid.muted = false;      // som só no vídeo principal
+    vid.muted = false;
     await vid.play();
     soundBtn.textContent = "🔊 Som ativado";
     soundBtn.disabled = true;
@@ -419,7 +428,7 @@ function maybeShowOrbit(){
     orbit.classList.add("on");
     clearTimeout(maybeShowOrbit._t);
     maybeShowOrbit._t = setTimeout(()=> orbit.classList.remove("on"), 1400);
-    clicksUntilGif = 1 + Math.floor(Math.random()*2); // reseta 1..2
+    clicksUntilGif = 1 + Math.floor(Math.random()*2);
   }
 }
 
@@ -443,41 +452,52 @@ function spawnHeart(){
 }
 
 let heartsTimer = null;
-function startHappyMode(){
-  // centraliza
-  btnRow.style.justifyContent = "center";
-  btnRow.style.gap = "0px";
+let happyMode = false;
 
-  // some o não de vez
+function startHappyMode(){
+  happyMode = true;
+
   noBtn.style.display = "none";
 
-  // pisca feliz + texto
   yesBtn.textContent = "SIM 💖";
   yesBtn.classList.add("blink-happy");
 
-  // corações contínuos
+  // centraliza o SIM
+  yesBtn.style.left = "50%";
+  yesBtn.style.right = "auto";
+
   if(heartsTimer) clearInterval(heartsTimer);
   heartsTimer = setInterval(spawnHeart, 220);
+
+  apply();
 }
 
-function apply(){
-  yesBtn.style.setProperty("--s", yesScale);
-  noBtn.style.setProperty("--s", noScale);
+/* ===== ROUBO DE LUGAR DO "NÃO" ===== */
+let stealDeltaX = 0;
 
-  yesBtn.style.transform = `scale(${yesScale})`;
-  noBtn.style.transform  = `scale(${noScale})`;
+function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
 
-  const fade = Math.min(1, (1 - noScale) / (1 - NO_MIN));
-  noBtn.style.opacity = (0.95 - fade * 0.8).toFixed(3);
-  noBtn.style.filter  = `saturate(${(1 - fade*0.6).toFixed(3)})`;
+function measureSteal(){
+  // só mede se ambos existem e o NÃO ainda está visível
+  if(!yesBtn || !noBtn || noBtn.style.display === "none") return;
 
-  if(noScale <= NO_MIN + 0.005){
-    noBtn.style.pointerEvents = "none";
-    noBtn.style.opacity = 0;
-    setDrama("");
-    startHappyMode();
-  }
+  // força layout atualizado
+  const rowRect = btnRow.getBoundingClientRect();
+  const yRect = yesBtn.getBoundingClientRect();
+  const nRect = noBtn.getBoundingClientRect();
+
+  const yCenter = (yRect.left + yRect.width/2) - rowRect.left;
+  const nCenter = (nRect.left + nRect.width/2) - rowRect.left;
+
+  stealDeltaX = (nCenter - yCenter) || 0;
 }
+
+window.addEventListener("resize", () => {
+  requestAnimationFrame(() => {
+    measureSteal();
+    apply();
+  });
+});
 
 /* ===== ADICIONADO: CONFIRMAÇÃO + FOTO ===== */
 function enterConfirmMode(){
@@ -509,24 +529,55 @@ function showPhotoFor3sThenAskAgain(){
   }, 3000);
 }
 
+function apply(){
+  // progresso do "roubo": quanto menor o NÃO, mais o SIM invade o lugar dele
+  const progress = clamp((1 - noScale) / (1 - NO_MIN), 0, 1);
+
+  // define variáveis para animações (pulse/blink)
+  yesBtn.style.setProperty("--s", yesScale);
+  noBtn.style.setProperty("--s", noScale);
+
+  // tx do SIM (roubando o lugar do NÃO)
+  let tx = happyMode ? 0 : (progress * stealDeltaX);
+  yesBtn.style.setProperty("--tx", tx + "px");
+
+  // transform do SIM (com roubo)
+  if(happyMode){
+    yesBtn.style.transform = `translateX(-50%) scale(${yesScale})`;
+  }else{
+    yesBtn.style.transform = `translateX(${tx}px) scale(${yesScale})`;
+  }
+
+  // NÃO só diminui (fica “impossível” clicar porque o SIM vai por cima)
+  noBtn.style.transform  = `scale(${noScale})`;
+
+  const fade = Math.min(1, (1 - noScale) / (1 - NO_MIN));
+  noBtn.style.opacity = (0.95 - fade * 0.8).toFixed(3);
+  noBtn.style.filter  = `saturate(${(1 - fade*0.6).toFixed(3)})`;
+
+  if(noScale <= NO_MIN + 0.005){
+    noBtn.style.pointerEvents = "none";
+    noBtn.style.opacity = 0;
+    setDrama("");
+    startHappyMode();
+  }
+}
+
 /* CLICK NO NÃO */
 noBtn.addEventListener("click", () => {
   if(lockClicks) return;
 
-  // 1º NÃO: entra no "Tem certeza?"
   if(firstNoArmed){
     firstNoArmed = false;
     enterConfirmMode();
     return;
   }
 
-  // Se estiver no "Tem certeza?" e clicar NÃO -> volta e segue a lógica normal
   if(confirmMode){
     confirmMode = false;
     titleEl.textContent = ORIGINAL.title;
     yesBtn.textContent  = ORIGINAL.yesText;
     noBtn.textContent   = ORIGINAL.noText;
-    // segue abaixo (lógica original)
   }
 
   setDrama(frases[idx % frases.length]);
@@ -546,13 +597,11 @@ noBtn.addEventListener("click", () => {
 yesBtn.addEventListener("click", () => {
   if(lockClicks) return;
 
-  // Se estiver no "Tem certeza?" e clicar SIM -> mostra foto 3s e volta
   if(confirmMode){
     showPhotoFor3sThenAskAgain();
     return;
   }
 
-  // fluxo original do SIM (final feliz)
   setVideo("video2.mp4");
 
   vid.muted = false;
@@ -567,10 +616,12 @@ yesBtn.addEventListener("click", () => {
   if(heartsTimer) clearInterval(heartsTimer);
 });
 
-apply();
+// mede a distância inicial entre centros (pra roubar certinho)
+requestAnimationFrame(() => {
+  measureSteal();
+  apply();
+});
 </script>
 
 </body>
 </html>
-
-
