@@ -107,7 +107,7 @@ h1{margin:10px 0 6px;font-size:22px;}
   padding: 8px 0 2px;
 }
 
-/* ====== AQUI: BOTÕES COM "ROUBO DE LUGAR" (ABSOLUTE) ====== */
+/* ====== BOTÕES COM "ROUBO DE LUGAR" (ABSOLUTE) ====== */
 .btnRow{
   position:relative;
   width:min(360px, 100%);
@@ -131,13 +131,13 @@ button.choice{
   transform-origin:center;
   transition:transform .22s cubic-bezier(.2,.9,.2,1),
              opacity .18s ease,filter .18s ease;
-  will-change:transform;
+  will-change:transform, filter;
 }
 
 #yesBtn{
   background:var(--yes);
   left:0;
-  z-index:3; /* sim sempre por cima, e vai "roubando" o espaço do não */
+  z-index:3;
 }
 #noBtn{
   background:var(--no);
@@ -145,7 +145,27 @@ button.choice{
   z-index:2;
 }
 
-/* ===== ORBITA COM GIF (MAIOR E MAIS LENTO) ===== */
+/* ===== EFEITO PROGRESSIVO NO SIM (começa fraco e vai ficando forte) ===== */
+#yesBtn{
+  filter: drop-shadow(0 0 0 rgba(255,255,255,0));
+}
+.yesGlow{
+  animation: yesGlowPulse var(--glowSpeed, 1.2s) ease-in-out infinite;
+}
+@keyframes yesGlowPulse{
+  0%,100%{
+    filter:
+      drop-shadow(0 0 calc(var(--glowA, 0px)) rgba(34,197,94,var(--glowOp, 0)))
+      drop-shadow(0 0 calc(var(--glowB, 0px)) rgba(255,255,255,var(--glowOp2, 0)));
+  }
+  50%{
+    filter:
+      drop-shadow(0 0 calc(var(--glowA2, 0px)) rgba(34,197,94,var(--glowOp3, 0)))
+      drop-shadow(0 0 calc(var(--glowB2, 0px)) rgba(255,255,255,var(--glowOp4, 0)));
+  }
+}
+
+/* ===== ORBITA COM GIF ===== */
 .orbit{
   position:absolute;
   left:50%;
@@ -204,7 +224,7 @@ button.choice{
   50%{ filter: brightness(1.22); transform: translateX(var(--tx, 0px)) scale(calc(var(--s) + 0.03)); }
 }
 
-/* corações fofos */
+/* corações */
 .hearts{
   position:absolute;
   inset:0;
@@ -232,7 +252,7 @@ button.choice{
 .result h2{font-size:28px;margin:0;}
 .result .sub{margin-top:8px;color:var(--muted);}
 
-/* ===== FOTO POPUP (ADICIONADO) ===== */
+/* ===== FOTO POPUP ===== */
 .photoOverlay{
   position:fixed;
   inset:0;
@@ -268,7 +288,6 @@ button.choice{
 
 <body>
 
-<!-- FOTO POPUP (ADICIONADO) -->
 <div class="photoOverlay" id="photoOverlay" aria-hidden="true">
   <div class="photoCard">
     <img src="./foto.png?v=2" alt="foto">
@@ -280,12 +299,8 @@ button.choice{
   <div class="card">
 
     <div class="media">
-      <!-- FUNDO BLUR -->
       <video id="vidBg" class="vidBg" src="video.mp4" autoplay loop playsinline muted></video>
-
-      <!-- VÍDEO PRINCIPAL -->
       <video id="vid" class="vidMain" src="video.mp4" autoplay loop playsinline muted></video>
-
       <button class="sound" id="soundBtn">🔈 Ativar som</button>
     </div>
 
@@ -335,7 +350,6 @@ const heartsLayer = document.getElementById("hearts");
 const question = document.getElementById("question");
 const result   = document.getElementById("result");
 
-/* ===== ADICIONADO (FOTO + TÍTULO) ===== */
 const titleEl = document.getElementById("title");
 const photoOverlay = document.getElementById("photoOverlay");
 
@@ -349,7 +363,6 @@ let confirmMode = false;
 let firstNoArmed = true;
 let lockClicks = false;
 
-/* helper: troca vídeo nos dois (principal + blur) */
 function setVideo(src){
   vidBg.pause();
   vidBg.src = src;
@@ -365,7 +378,6 @@ function setVideo(src){
   vid.play().catch(()=>{});
 }
 
-/* som iPhone */
 soundBtn.addEventListener("click", async () => {
   try{
     vid.muted = false;
@@ -388,7 +400,7 @@ const NO_MIN  = 0.05;
 const STEP_Y  = 0.08;
 const STEP_N  = 0.10;
 
-/* frases dramáticas */
+/* frases */
 const frases = [
   "Por que vc n ?",
   "Por queeee",
@@ -420,8 +432,8 @@ function setDrama(t){
   }, 120);
 }
 
-/* GIF: aparece aleatoriamente entre 1 e 2 cliques */
-let clicksUntilGif = 1 + Math.floor(Math.random()*2); // 1 ou 2
+/* GIF aleatório */
+let clicksUntilGif = 1 + Math.floor(Math.random()*2);
 function maybeShowOrbit(){
   clicksUntilGif--;
   if(clicksUntilGif <= 0){
@@ -432,7 +444,7 @@ function maybeShowOrbit(){
   }
 }
 
-/* corações fofos saindo do Sim (no final) */
+/* corações */
 function spawnHeart(){
   const rect = btnStage.getBoundingClientRect();
   const btn  = yesBtn.getBoundingClientRect();
@@ -462,7 +474,6 @@ function startHappyMode(){
   yesBtn.textContent = "SIM 💖";
   yesBtn.classList.add("blink-happy");
 
-  // centraliza o SIM
   yesBtn.style.left = "50%";
   yesBtn.style.right = "auto";
 
@@ -472,16 +483,14 @@ function startHappyMode(){
   apply();
 }
 
-/* ===== ROUBO DE LUGAR DO "NÃO" ===== */
+/* ===== ROUBO DE LUGAR + EFEITO PROGRESSIVO ===== */
 let stealDeltaX = 0;
 
 function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
 
 function measureSteal(){
-  // só mede se ambos existem e o NÃO ainda está visível
   if(!yesBtn || !noBtn || noBtn.style.display === "none") return;
 
-  // força layout atualizado
   const rowRect = btnRow.getBoundingClientRect();
   const yRect = yesBtn.getBoundingClientRect();
   const nRect = noBtn.getBoundingClientRect();
@@ -499,7 +508,7 @@ window.addEventListener("resize", () => {
   });
 });
 
-/* ===== ADICIONADO: CONFIRMAÇÃO + FOTO ===== */
+/* CONFIRMAÇÃO + FOTO */
 function enterConfirmMode(){
   confirmMode = true;
   titleEl.textContent = "Tem certeza?";
@@ -529,26 +538,58 @@ function showPhotoFor3sThenAskAgain(){
   }, 3000);
 }
 
+function updateYesEffect(progress){
+  // progress 0..1 (quanto mais "NÃO", mais forte)
+  // começa simples: quase nada. Depois vira glow/pulse forte.
+  const a  = Math.round(0  + 10 * progress);   // raio base
+  const a2 = Math.round(0  + 18 * progress);   // raio pico
+  const b  = Math.round(0  + 6  * progress);   // brilho branco base
+  const b2 = Math.round(0  + 12 * progress);   // brilho branco pico
+
+  const op1 = (0.00 + 0.35 * progress).toFixed(3);
+  const op2 = (0.00 + 0.22 * progress).toFixed(3);
+  const op3 = (0.00 + 0.55 * progress).toFixed(3);
+  const op4 = (0.00 + 0.30 * progress).toFixed(3);
+
+  // velocidade aumenta conforme os "NÃO"
+  const speed = (1.35 - 0.65 * progress).toFixed(2) + "s";
+
+  yesBtn.style.setProperty("--glowA",  a  + "px");
+  yesBtn.style.setProperty("--glowA2", a2 + "px");
+  yesBtn.style.setProperty("--glowB",  b  + "px");
+  yesBtn.style.setProperty("--glowB2", b2 + "px");
+
+  yesBtn.style.setProperty("--glowOp",  op1);
+  yesBtn.style.setProperty("--glowOp2", op2);
+  yesBtn.style.setProperty("--glowOp3", op3);
+  yesBtn.style.setProperty("--glowOp4", op4);
+
+  yesBtn.style.setProperty("--glowSpeed", speed);
+
+  // ativa animação só quando começar a ficar perceptível
+  if(progress > 0.06) yesBtn.classList.add("yesGlow");
+  else yesBtn.classList.remove("yesGlow");
+}
+
 function apply(){
-  // progresso do "roubo": quanto menor o NÃO, mais o SIM invade o lugar dele
   const progress = clamp((1 - noScale) / (1 - NO_MIN), 0, 1);
 
-  // define variáveis para animações (pulse/blink)
   yesBtn.style.setProperty("--s", yesScale);
   noBtn.style.setProperty("--s", noScale);
 
-  // tx do SIM (roubando o lugar do NÃO)
+  // roubo do lugar do NÃO
   let tx = happyMode ? 0 : (progress * stealDeltaX);
   yesBtn.style.setProperty("--tx", tx + "px");
 
-  // transform do SIM (com roubo)
+  // efeito do SIM cresce com o progresso (mesmo que ele esteja em cima)
+  updateYesEffect(progress);
+
   if(happyMode){
     yesBtn.style.transform = `translateX(-50%) scale(${yesScale})`;
   }else{
     yesBtn.style.transform = `translateX(${tx}px) scale(${yesScale})`;
   }
 
-  // NÃO só diminui (fica “impossível” clicar porque o SIM vai por cima)
   noBtn.style.transform  = `scale(${noScale})`;
 
   const fade = Math.min(1, (1 - noScale) / (1 - NO_MIN));
@@ -616,10 +657,9 @@ yesBtn.addEventListener("click", () => {
   if(heartsTimer) clearInterval(heartsTimer);
 });
 
-// mede a distância inicial entre centros (pra roubar certinho)
 requestAnimationFrame(() => {
   measureSteal();
-  apply();
+  apply(); // aqui já inicia com efeito bem fraco (simples)
 });
 </script>
 
