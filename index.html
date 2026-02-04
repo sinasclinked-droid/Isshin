@@ -40,7 +40,7 @@ body{
   border:1px solid rgba(0,0,0,.06);
 }
 
-/* ====== VÍDEO SEM BORDAS PRETAS: FUNDO BLUR + VÍDEO AJUSTADO ====== */
+/* ===== VIDEO ===== */
 .media{
   position:relative;
   aspect-ratio:4/3;
@@ -48,7 +48,6 @@ body{
   overflow:hidden;
 }
 
-/* fundo blur (preenche tudo) */
 .vidBg{
   position:absolute;
   inset:0;
@@ -60,7 +59,6 @@ body{
   opacity:.95;
 }
 
-/* vídeo principal (ajustado/sem cortar) */
 .vidMain{
   position:absolute;
   inset:0;
@@ -84,6 +82,7 @@ body{
   z-index:2;
 }
 
+/* ===== CONTENT ===== */
 .content{
   padding:18px 18px 22px;
   text-align:center;
@@ -96,7 +95,6 @@ h1{margin:10px 0 6px;font-size:22px;}
   font-size:14px;
   color:var(--muted);
   min-height:22px;
-  transition:opacity .2s ease,transform .2s ease;
 }
 
 .btnStage{
@@ -104,17 +102,11 @@ h1{margin:10px 0 6px;font-size:22px;}
   display:flex;
   justify-content:center;
   align-items:center;
-  padding: 8px 0 2px;
 }
 
 .btnRow{
   display:flex;
   gap:12px;
-  justify-content:center;
-  align-items:center;
-  position:relative;
-  z-index:2;
-  transition: justify-content .2s ease;
 }
 
 button.choice{
@@ -126,102 +118,12 @@ button.choice{
   font-weight:950;
   color:#fff;
   box-shadow:0 12px 26px rgba(0,0,0,.14);
-  transform-origin:center;
-  transition:transform .22s cubic-bezier(.2,.9,.2,1),
-             opacity .18s ease,filter .18s ease;
 }
 
 #yesBtn{background:var(--yes);}
 #noBtn {background:var(--no);}
 
-/* ===== ORBITA COM GIF (MAIOR E MAIS LENTO) ===== */
-.orbit{
-  position:absolute;
-  left:50%;
-  top:50%;
-  width:280px;
-  height:280px;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-  z-index:1;
-  opacity:0;
-  transition:opacity .2s ease;
-}
-.orbit.on{opacity:1;}
-
-.orbit .sat{
-  position:absolute;
-  left:50%;
-  top:50%;
-  width:72px;
-  height:72px;
-  transform:translate(-50%,-50%);
-  border-radius:14px;
-  overflow:hidden;
-  filter:drop-shadow(0 10px 18px rgba(0,0,0,.18));
-  animation:orbit 1.9s linear infinite;
-  transform-origin:0 0;
-}
-@keyframes orbit{
-  from{transform:rotate(0deg) translateX(120px) rotate(0deg);}
-  to  {transform:rotate(360deg) translateX(120px) rotate(-360deg);}
-}
-
-/* efeitos */
-.pulse{animation:pulse .3s ease-out;}
-@keyframes pulse{
-  0%{transform:scale(var(--s))}
-  60%{transform:scale(calc(var(--s) + 0.06))}
-  100%{transform:scale(var(--s))}
-}
-
-.shake{animation:shake .28s ease-in-out;}
-@keyframes shake{
-  0%{transform:scale(var(--s)) translateX(0)}
-  25%{transform:scale(var(--s)) translateX(-2px)}
-  50%{transform:scale(var(--s)) translateX(2px)}
-  75%{transform:scale(var(--s)) translateX(-1px)}
-  100%{transform:scale(var(--s)) translateX(0)}
-}
-
-/* final feliz: pisca */
-.blink-happy{
-  animation: blinkHappy .8s ease-in-out infinite;
-}
-@keyframes blinkHappy{
-  0%,100%{ filter: brightness(1); transform: scale(var(--s)); }
-  50%{ filter: brightness(1.22); transform: scale(calc(var(--s) + 0.03)); }
-}
-
-/* corações fofos */
-.hearts{
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  overflow:hidden;
-  z-index:3;
-}
-.heart{
-  position:absolute;
-  font-size:18px;
-  animation: floatUp 1.2s ease-out forwards;
-  user-select:none;
-}
-@keyframes floatUp{
-  from{ transform: translateY(10px) scale(.9); opacity:0.0; }
-  10%{ opacity:1; }
-  to{ transform: translateY(-80px) scale(1.25); opacity:0; }
-}
-
-.result{
-  display:none;
-  padding:22px 18px 26px;
-  text-align:center;
-}
-.result h2{font-size:28px;margin:0;}
-.result .sub{margin-top:8px;color:var(--muted);}
-
-/* ===== FOTO POPUP (NOVA) ===== */
+/* ===== FOTO OVERLAY ===== */
 .photoOverlay{
   position:fixed;
   inset:0;
@@ -230,352 +132,130 @@ button.choice{
   justify-content:center;
   background:rgba(0,0,0,.55);
   z-index:9999;
-  padding:18px;
 }
 .photoOverlay.on{display:flex;}
+
 .photoCard{
-  width:min(420px, 92vw);
+  width:min(420px,92vw);
   background:#fff;
   border-radius:18px;
   overflow:hidden;
   box-shadow:0 22px 60px rgba(0,0,0,.28);
-  transform:scale(.98);
-  animation: popIn .18s ease-out forwards;
 }
-@keyframes popIn{
-  to{ transform:scale(1); }
-}
+
 .photoCard img{
   width:100%;
   height:auto;
   display:block;
-}
-.photoCaption{
-  padding:12px 14px;
-  font-weight:900;
-  color:#111827;
-  text-align:center;
 }
 </style>
 </head>
 
 <body>
 
-<!-- FOTO POPUP (NOVA) -->
-<div class="photoOverlay" id="photoOverlay" aria-hidden="true">
+<!-- FOTO -->
+<div class="photoOverlay" id="photoOverlay">
   <div class="photoCard">
-    <img src="foto.jpg" alt="foto" />
-    <div class="photoCaption">💘</div>
+    <img src="./foto.jpg?v=2" alt="foto">
   </div>
 </div>
 
 <div class="phone">
-  <div class="card">
+<div class="card">
 
-    <div class="media">
-      <!-- FUNDO BLUR -->
-      <video id="vidBg" class="vidBg" src="video.mp4" autoplay loop playsinline muted></video>
+<div class="media">
+  <video id="vidBg" class="vidBg" src="video.mp4" autoplay loop muted></video>
+  <video id="vid" class="vidMain" src="video.mp4" autoplay loop muted></video>
+  <button class="sound" id="soundBtn">🔈 Ativar som</button>
+</div>
 
-      <!-- VÍDEO PRINCIPAL -->
-      <video id="vid" class="vidMain" src="video.mp4" autoplay loop playsinline muted></video>
+<div class="content" id="question">
+  <h1 id="title">Quer ser a minha namorada? 💘</h1>
+  <p id="drama">...</p>
 
-      <button class="sound" id="soundBtn">🔈 Ativar som</button>
+  <div class="btnStage">
+    <div class="btnRow">
+      <button class="choice" id="yesBtn">Sim</button>
+      <button class="choice" id="noBtn">Não</button>
     </div>
-
-    <div class="content" id="question">
-      <h1 id="title">Quer ser a minha namorada? 💘</h1>
-      <p id="drama">...</p>
-
-      <div class="btnStage" id="btnStage">
-        <div class="hearts" id="hearts"></div>
-
-        <div class="orbit" id="orbit">
-          <div class="sat">
-            <img src="gif.gif" style="width:100%;height:100%;object-fit:cover;" alt="gif">
-          </div>
-        </div>
-
-        <div class="btnRow" id="btnRow">
-          <button class="choice" id="yesBtn">Sim</button>
-          <button class="choice" id="noBtn">Não</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="result" id="result">
-      <h2>EBAAAAAH!!! 🎉</h2>
-      <div class="sub">Ñ VAI SE ARREPENDER</div>
-    </div>
-
   </div>
 </div>
 
+<div class="content" id="result" style="display:none">
+  <h1>EBAAAAAH!!! 🎉</h1>
+  <p>Ñ VAI SE ARREPENDER</p>
+</div>
+
+</div>
+</div>
+
 <script>
-const vid = document.getElementById("vid");
-const vidBg = document.getElementById("vidBg");
-const soundBtn = document.getElementById("soundBtn");
-
-const yesBtn  = document.getElementById("yesBtn");
-const noBtn   = document.getElementById("noBtn");
-const drama   = document.getElementById("drama");
-const orbit   = document.getElementById("orbit");
-
-const btnRow  = document.getElementById("btnRow");
-const btnStage= document.getElementById("btnStage");
-
-const heartsLayer = document.getElementById("hearts");
-
-const question = document.getElementById("question");
-const result   = document.getElementById("result");
-
+const yesBtn = document.getElementById("yesBtn");
+const noBtn = document.getElementById("noBtn");
 const titleEl = document.getElementById("title");
-
-/* NOVO: overlay da foto */
+const drama = document.getElementById("drama");
 const photoOverlay = document.getElementById("photoOverlay");
 
-/* helper: troca vídeo nos dois (principal + blur) */
-function setVideo(src){
-  vidBg.pause();
-  vidBg.src = src;
-  vidBg.loop = true;
-  vidBg.currentTime = 0;
-  vidBg.muted = true;
-  vidBg.play().catch(()=>{});
+let confirmMode = false;
+let firstNoArmed = true;
+let lockClicks = false;
 
-  vid.pause();
-  vid.src = src;
-  vid.loop = true;
-  vid.currentTime = 0;
-  vid.play().catch(()=>{});
-}
-
-/* som iPhone */
-soundBtn.addEventListener("click", async () => {
-  try{
-    vid.muted = false;
-    await vid.play();
-    soundBtn.textContent = "🔊 Som ativado";
-    soundBtn.disabled = true;
-    soundBtn.style.opacity = .85;
-  }catch(e){
-    vid.muted = true;
-    soundBtn.textContent = "⚠️ Toque de novo";
-  }
-});
-
-/* escalas */
-let yesScale = 1;
-let noScale  = 1;
-
-const YES_MAX = 2.15;
-const NO_MIN  = 0.05;
-const STEP_Y  = 0.08;
-const STEP_N  = 0.10;
-
-/* frases dramáticas */
-const frases = [
-  "Por que vc n quer?",
-  "Não faz isso comigo…",
-  "Eu te amo muito",
-  "🙏",
-  "💔",
-  "Eu paro de falar de camelos",
-  "Faço oq quiseeer",
-  "...",
-  "..",
-  "."
-];
-let idx = 0;
-
-function addTempClass(el, cls){
-  el.classList.remove(cls);
-  void el.offsetWidth;
-  el.classList.add(cls);
-  setTimeout(()=>el.classList.remove(cls), 320);
-}
-
-function setDrama(t){
-  drama.style.opacity = 0;
-  drama.style.transform = "translateY(2px)";
-  setTimeout(()=>{
-    drama.textContent = t;
-    drama.style.opacity = 1;
-    drama.style.transform = "translateY(0)";
-  }, 120);
-}
-
-/* GIF: aparece aleatoriamente entre 1 e 2 cliques */
-let clicksUntilGif = 1 + Math.floor(Math.random()*2); // 1 ou 2
-function maybeShowOrbit(){
-  clicksUntilGif--;
-  if(clicksUntilGif <= 0){
-    orbit.classList.add("on");
-    clearTimeout(maybeShowOrbit._t);
-    maybeShowOrbit._t = setTimeout(()=> orbit.classList.remove("on"), 1400);
-    clicksUntilGif = 1 + Math.floor(Math.random()*2);
-  }
-}
-
-/* corações fofos saindo do Sim (no final) */
-function spawnHeart(){
-  const rect = btnStage.getBoundingClientRect();
-  const btn  = yesBtn.getBoundingClientRect();
-
-  const x = (btn.left - rect.left) + btn.width/2 + (Math.random()*50 - 25);
-  const y = (btn.top  - rect.top)  + btn.height/2 + (Math.random()*14 - 7);
-
-  const el = document.createElement("div");
-  el.className = "heart";
-  el.textContent = ["💖","💕","💘","💗","❤️"][Math.floor(Math.random()*5)];
-  el.style.left = x + "px";
-  el.style.top  = y + "px";
-  el.style.fontSize = (16 + Math.random()*10) + "px";
-  heartsLayer.appendChild(el);
-
-  setTimeout(()=> el.remove(), 1300);
-}
-
-let heartsTimer = null;
-function startHappyMode(){
-  btnRow.style.justifyContent = "center";
-  btnRow.style.gap = "0px";
-
-  noBtn.style.display = "none";
-
-  yesBtn.textContent = "SIM 💖";
-  yesBtn.classList.add("blink-happy");
-
-  if(heartsTimer) clearInterval(heartsTimer);
-  heartsTimer = setInterval(spawnHeart, 220);
-}
-
-function apply(){
-  yesBtn.style.setProperty("--s", yesScale);
-  noBtn.style.setProperty("--s", noScale);
-
-  yesBtn.style.transform = `scale(${yesScale})`;
-  noBtn.style.transform  = `scale(${noScale})`;
-
-  const fade = Math.min(1, (1 - noScale) / (1 - NO_MIN));
-  noBtn.style.opacity = (0.95 - fade * 0.8).toFixed(3);
-  noBtn.style.filter  = `saturate(${(1 - fade*0.6).toFixed(3)})`;
-
-  if(noScale <= NO_MIN + 0.005){
-    noBtn.style.pointerEvents = "none";
-    noBtn.style.opacity = 0;
-    setDrama("");
-    startHappyMode();
-  }
-}
-
-/* =========================
-   NOVO: "primeiro NÃO" com confirmação + foto
-========================= */
 const ORIGINAL = {
   title: "Quer ser a minha namorada? 💘",
   yesText: "Sim",
   noText: "Não"
 };
 
-let confirmMode = false;       // está na tela "Tem certeza?"
-let firstNoArmed = true;       // garante que só acontece UMA vez
-let lockClicks = false;        // evita spam durante a foto/transição
-
 function enterConfirmMode(){
   confirmMode = true;
   titleEl.textContent = "Tem certeza?";
-  yesBtn.textContent = "Sim";
-  noBtn.textContent  = "Não";
-  setDrama(""); // limpa drama nessa tela
+  drama.textContent = "";
 }
 
-function exitConfirmModeBackToAsk(){
+function exitConfirmMode(){
   confirmMode = false;
   titleEl.textContent = ORIGINAL.title;
-  yesBtn.textContent = ORIGINAL.yesText;
-  noBtn.textContent  = ORIGINAL.noText;
-  setDrama("...");
+  drama.textContent = "...";
 }
 
 function showPhotoFor3sThenAskAgain(){
   lockClicks = true;
   photoOverlay.classList.add("on");
-  photoOverlay.setAttribute("aria-hidden","false");
 
   setTimeout(()=>{
     photoOverlay.classList.remove("on");
-    photoOverlay.setAttribute("aria-hidden","true");
-
-    // volta pra pergunta depois de 3s
-    exitConfirmModeBackToAsk();
+    exitConfirmMode();
     lockClicks = false;
-  }, 3000);
+  },3000);
 }
 
-/* =========================
-   CLICK NO "NÃO"
-========================= */
-noBtn.addEventListener("click", () => {
+noBtn.onclick = () =>{
   if(lockClicks) return;
 
-  // 1º NÃO: entra no "Tem certeza?"
   if(firstNoArmed){
-    firstNoArmed = false;
+    firstNoArmed=false;
     enterConfirmMode();
     return;
   }
 
-  // Se estiver no "Tem certeza?" e clicar NÃO -> segue a lógica normal (dramas + escala)
   if(confirmMode){
-    confirmMode = false; // sai do modo confirmação e já aplica a lógica normal
-    titleEl.textContent = ORIGINAL.title;
-    yesBtn.textContent  = ORIGINAL.yesText;
-    noBtn.textContent   = ORIGINAL.noText;
-    // (segue abaixo com a lógica original do NÃO)
+    exitConfirmMode();
   }
 
-  setDrama(frases[idx % frases.length]);
-  idx++;
+  drama.textContent="Não aceito 😤";
+};
 
-  maybeShowOrbit();
-
-  yesScale = Math.min(YES_MAX, yesScale + STEP_Y);
-  noScale  = Math.max(NO_MIN,  noScale - STEP_N);
-
-  apply();
-  addTempClass(yesBtn, "pulse");
-  addTempClass(noBtn, "shake");
-});
-
-/* =========================
-   CLICK NO "SIM"
-========================= */
-yesBtn.addEventListener("click", () => {
+yesBtn.onclick = () =>{
   if(lockClicks) return;
 
-  // Se estiver na confirmação ("Tem certeza?") e clicar SIM:
-  // mostra a foto por 3s, volta pra pergunta, e a lógica continua normal depois
   if(confirmMode){
     showPhotoFor3sThenAskAgain();
     return;
   }
 
-  // fluxo original do SIM (final feliz)
-  setVideo("video2.mp4");
-
-  vid.muted = false;
-  vid.play().catch(()=>{});
-
-  question.style.display = "none";
-
-  setTimeout(() => {
-    result.style.display = "block";
-  }, 1200);
-
-  if(heartsTimer) clearInterval(heartsTimer);
-});
-
-apply();
+  document.getElementById("question").style.display="none";
+  document.getElementById("result").style.display="block";
+};
 </script>
 
 </body>
